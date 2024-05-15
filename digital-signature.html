@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to My Java Web Server Assignment</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(120deg, #2980b9, #8e44ad);
+            color: #ECF0F1;
+        }
+        header {
+            background: #2C3E50;
+            color: #ECF0F1;
+            width: 100%;
+            padding: 0px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            font-size: 24px;
+            position: fixed;
+            top: 0;
+            z-index: 2; /* Increased z-index */
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            background: rgba(52, 73, 94, 0.75);
+            border-radius: 8px;
+            margin-top: 60px; /* Make space for the header */
+        }
+        canvas {
+            background: #FFFFFF;
+            border: 1px solid #ECF0F1;
+            border-radius: 5px;
+        }
+        .toolbar {
+            margin-top: 15px;
+        }
+        button, select {
+            font-size: 14px;
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            outline: none;
+            color: #2C3E50;
+            background: #ECF0F1;
+        }
+        button:hover, select:hover {
+            background-color: #BDC3C7;
+        }
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #ECF0F1;
+            cursor: pointer;
+        }
+        footer {
+            position: fixed;
+            bottom: 0px;
+            width: 100%;
+            text-align: center;
+            color: #ECF0F1;
+            font-size: 16px;
+            background: #2C3E50;
+            color: #ECF0F1;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            position: fixed;
+            z-index: z; /* Increased z-index */
+        }
+    </style>
+</head>
+<body>
+    <header><h3>Welcome to My Java Web Server Assignment</h3></header>
+    <div class="container">
+        <h2>Digital Signature Generator</h2>
+        <canvas id="signatureCanvas" width="800" height="400"></canvas>
+        <div class="toolbar">
+            <button onclick="clearCanvas()">Clear</button>
+            <button onclick="undo()">Undo</button>
+            <button onclick="redo()">Redo</button>
+            <button onclick="downloadCanvas()">Download</button>
+            <input type="color" class="color-picker" onchange="changeColor(this.value)" value="#000000">
+            <input type="range" min="1" max="20" value="3" class="brush-size" onchange="changeSize(this.value)">
+            <select onchange="changeBrush(this.value)">
+                <option value="round">Round</option>
+                <option value="square">Square</option>
+            </select>
+        </div>
+    </div>
+    <footer>
+        Made with ❤️ by Bhushan
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let drawingHistory = [];
+        let redoStack = [];
+
+        canvas.addEventListener('mousedown', e => {
+            isDrawing = true;
+            lastX = e.offsetX;
+            lastY = e.offsetY;
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            if (isDrawing) {
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+                lastX = e.offsetX;
+                lastY = e.offsetY;
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            if (isDrawing) {
+                isDrawing = false;
+                saveDrawingState();
+            }
+        });
+
+        canvas.addEventListener('mouseout', () => {
+            if (isDrawing) {
+                isDrawing = false;
+                saveDrawingState();
+            }
+        });
+
+        function saveDrawingState() {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            drawingHistory.push(imgData);
+            redoStack = []; // Clear redo stack on new action
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawingHistory = [];
+            redoStack = [];
+        }
+
+        function undo() {
+            if (drawingHistory.length > 0) {
+                redoStack.push(drawingHistory.pop());
+                ctx.putImageData(drawingHistory[drawingHistory.length - 1], 0, 0);
+            }
+        }
+
+        function redo() {
+            if (redoStack.length > 0) {
+                drawingHistory.push(redoStack.pop());
+                ctx.putImageData(drawingHistory[drawingHistory.length - 1], 0, 0);
+            }
+        }
+
+        function changeColor(value) {
+            ctx.strokeStyle = value;
+        }
+
+        function changeSize(value) {
+            ctx.lineWidth = value;
+        }
+
+        function changeBrush(value) {
+            ctx.lineCap = value;
+        }
+
+        function downloadCanvas() {
+            const link = document.createElement('a');
+            link.download = 'signature.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    </script>
+</body>
+</html>
